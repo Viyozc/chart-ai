@@ -1,8 +1,7 @@
 // Create service client module using ES6 syntax.
-import { S3Client } from '@aws-sdk/client-s3'
+import AWS from 'aws-sdk'
 // const S3Client = require('@aws-sdk/client-s3')
 // Set the AWS Region.
-import AWS from 'aws-sdk'
 
 const accessKey = process.env.S3_AK
 const secretKey = process.env.S3_SK
@@ -15,7 +14,7 @@ const s3 = new AWS.S3({
   secretAccessKey: secretKey,
   region: REGION,
   signatureVersion: 'v4'
-});
+})
 AWS.config.update({
   region: REGION,
   signatureVersion: 'v4'

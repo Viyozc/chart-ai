@@ -6,7 +6,7 @@ import crypto from 'crypto'
 
 const BASE_CLOUDFRONT_URL = 'https://d135ugxgwtnu1c.cloudfront.net'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler (req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -23,8 +23,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .update(JSON.stringify({ config, width, height }))
       .digest('hex')
       .slice(0, 12)
-    
-    const finalFilename = filename 
+
+    const finalFilename = filename
       ? `charts/${filename}-${configHash}.png`
       : `charts/chart-${configHash}.png`
 
@@ -37,9 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // 文件已存在，直接返回 URL
       const existingUrl = `${BASE_CLOUDFRONT_URL}/${finalFilename}`
-      
+
       console.log(`Chart already exists in S3: ${finalFilename}`)
-      
+
       return res.status(200).json({
         success: true,
         message: 'Chart retrieved from cache',
@@ -54,18 +54,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 文件不存在，继续生成新图片
-      if (error.code !== 'NotFound') {
+      const err = error as { code?: string }
+      if (err.code !== 'NotFound') {
         throw error // 如果不是"文件不存在"错误，则抛出
       }
     }
 
     // 创建 canvas
     const canvas = createCanvas(width, height)
-    
+
     // 创建图表实例，直接传入 canvas
-    const chart = echarts.init(canvas as any, null, {
+    const chart = echarts.init(canvas as unknown as HTMLCanvasElement, null, {
       width,
       height,
       renderer: 'canvas'
@@ -91,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       Key: finalFilename,
       Body: imageBufferData,
       ContentType: 'image/png',
-      CacheControl: 'public, max-age=31536000, immutable',
+      CacheControl: 'public, max-age=31536000, immutable'
     }
 
     const result = await s3.upload(bucketParams).promise()
@@ -115,7 +116,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 销毁图表实例
     chart.dispose()
-
   } catch (error) {
     console.error('Error generating chart:', error)
     res.status(500).json({
