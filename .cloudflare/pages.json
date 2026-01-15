@@ -1,0 +1,5 @@
+{
+  "buildCommand": "yarn build && yarn pages:build",
+  "outputDirectory": ".vercel/output/static"
+}
+
